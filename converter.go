@@ -46,6 +46,7 @@ func convertTime(hours int32, minutes int32, seconds int32) (uint8, uint8, uint8
 	}
 	if hours >= 24 || hours < 0 {
 		err = errors.New("hours value must be in the range 0 to 24");
+		return 0, 0, 0, err;
 	}
 
 	var totalTime uint32 = uint32(hours * EARTH_HOURTOSEC + minutes * EARTH_MINUTETOSEC + seconds);
