@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func seed(db *gorm.DB) {
+func Seed(db *gorm.DB) {
 	err := db.AutoMigrate(&models.Movie{}, &models.Artist{}, &models.Genre{})
 	if err != nil {
 		log.Fatal("Migration failed:", err)
