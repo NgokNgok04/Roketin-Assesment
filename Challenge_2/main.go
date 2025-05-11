@@ -51,6 +51,7 @@ func main() {
 	})
 	app.Get("/movies", handlers.GetAllMovies(db))
 	app.Post("/movies", handlers.CreateMovie(db))
+	app.Put("/movies/:id", handlers.UpdateMovie(db))
 
 	log.Fatal(app.Listen(":3000"));
 }
