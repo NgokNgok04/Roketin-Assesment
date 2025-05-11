@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/NgokNgok04/Roketin-Assesment/Challenge_2/handlers"
 	"github.com/NgokNgok04/Roketin-Assesment/Challenge_2/seed"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -22,6 +23,7 @@ type Movie struct {
 }
 func main() {
 	err := godotenv.Load();
+	
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -35,35 +37,20 @@ func main() {
 		os.Getenv("DB_PORT"),
 		os.Getenv("SSL_MODE"),
 	)
-
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to PostgreSQL: %v", err)
 	}
+	// Seeding data
 	seed.Seed(db)
 
 	app := fiber.New();
-
-	movies := []Movie{}
-
+	// Route
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{"msg": "hello world"})
 	})
-	app.Post("/api/movies", func(c *fiber.Ctx) error {
-		movie:= &Movie{};
+	app.Get("/movies", handlers.GetAllMovies(db))
+	app.Post("/movies", handlers.CreateMovie(db))
 
-		if err := c.BodyParser(movie); err != nil {
-			return err;
-		}
-
-		if movie.Title == "" {
-			return c.Status(400).JSON(fiber.Map{"error": "Title is required"})
-		}
-		movie.ID = len(movies) + 1
-		movies = append(movies, *movie);
-
-		return c.Status(201).JSON(movie);
-	})
-	fmt.Println("Hello Worlds");
-	log.Fatal(app.Listen(":4000"));
+	log.Fatal(app.Listen(":3000"));
 }
