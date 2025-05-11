@@ -20,6 +20,37 @@ func GetAllMovies(db *gorm.DB) fiber.Handler {
 	}
 }
 
+func GetPaginatedMovies(db *gorm.DB) fiber.Handler {
+	return func(c * fiber.Ctx) error {
+		pageStr := c.Query("page","1")
+		limitStr := c.Query("limit", "10")
+		
+		page, _ := strconv.Atoi(pageStr)
+		limit, _ := strconv.Atoi(limitStr)
+		
+		if page < 1 {page = 1}
+		if limit < 1 {limit = 5}
+		offset := (page - 1) * limit
+
+		var movies []models.Movie
+		var total int64
+
+		db.Model(&models.Movie{}).Count(&total)
+		if err := db.Preload("Artists").Preload("Genres").Limit(limit).Offset(offset).Find(&movies).Error; err != nil {
+			return utils.HandleError(c, "Failed to fetch movies")
+		}
+
+		return c.JSON(fiber.Map{
+			"data": movies,
+			"meta": fiber.Map{
+				"page": page,
+				"limit": limit,
+				"total": total,
+			},
+		})
+	}
+}
+
 func CreateMovie(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var input types.CreateMovieType
@@ -96,3 +127,4 @@ func UpdateMovie(db *gorm.DB) fiber.Handler {
 		return c.JSON(movie)
 	}
 }
+
