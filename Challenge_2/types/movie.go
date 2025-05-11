@@ -1,6 +1,6 @@
 package types
 
-type CreatMovieType struct {
+type CreateMovieType struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Duration    int    `json:"duration"`

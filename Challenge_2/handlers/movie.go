@@ -20,7 +20,7 @@ func GetAllMovies(db *gorm.DB) fiber.Handler {
 
 func CreateMovie(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var input types.CreatMovieType
+		var input types.CreateMovieType
 		if err := c.BodyParser(&input); err != nil {
 			return utils.HandleError(c, "Failed to create movie")
 		}
