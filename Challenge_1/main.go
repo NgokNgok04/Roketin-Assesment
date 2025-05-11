@@ -19,7 +19,7 @@ func main() {
 		_, errorUserInput := fmt.Scanln(&hours, &minutes, &seconds);
 		
 		if errorUserInput != nil {
-        	fmt.Println("Invalid input! Please enter an integer.")
+        	fmt.Println("\nInvalid input! Please enter an integer.")
         	break;
     	}
 
@@ -28,25 +28,21 @@ func main() {
 			fmt.Println("User input is not valid. Please use the correct format.");
 			break;
 		} else {
-			fmt.Printf("Time in Roketin are %02d:%02d:%02d\n", newHours, newMinutes, newSeconds);
+			fmt.Printf("Time in Roketin are %02d:%02d:%02d", newHours, newMinutes, newSeconds);
 		}
 		
 	}
 }
 
 func convertTime(hours int32, minutes int32, seconds int32) (uint8, uint8, uint8, error) {
-	var err error;
 	if seconds >= 60 || seconds < 0 {
-		err = errors.New("seconds value must be in the range 0 to 60");
-		return 0, 0, 0, err;
+		return 0, 0, 0, errors.New("seconds value must be in the range 0 to 60");
 	}
 	if minutes >= 60 || minutes < 0 {
-		err = errors.New("minutes value must be in the range 0 to 60");
-		return 0, 0, 0, err;
+		return 0, 0, 0, errors.New("minutes value must be in the range 0 to 60");;
 	}
 	if hours >= 24 || hours < 0 {
-		err = errors.New("hours value must be in the range 0 to 24");
-		return 0, 0, 0, err;
+		return 0, 0, 0, errors.New("hours value must be in the range 0 to 24");;
 	}
 
 	var totalTime uint32 = uint32(hours * EARTH_HOURTOSEC + minutes * EARTH_MINUTETOSEC + seconds);
@@ -57,5 +53,5 @@ func convertTime(hours int32, minutes int32, seconds int32) (uint8, uint8, uint8
 	totalTime %= ROKETIN_MINUTETOSEC
 	var newSeconds uint8 = uint8((totalTime));
 	
-	return newHours, newMinutes, newSeconds, err;
+	return newHours, newMinutes, newSeconds, nil;
 }
