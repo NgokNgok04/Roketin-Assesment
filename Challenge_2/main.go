@@ -5,9 +5,11 @@ import (
 	"log"
 	"os"
 
+	_ "github.com/NgokNgok04/Roketin-Assesment/Challenge_2/docs"
 	"github.com/NgokNgok04/Roketin-Assesment/Challenge_2/handlers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	fiberSwagger "github.com/swaggo/fiber-swagger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -35,6 +37,9 @@ func main() {
 
 	app := fiber.New();
 	// Route
+
+	app.Get("/swagger/*", fiberSwagger.WrapHandler)
+
 	app.Get("/movies", handlers.GetPaginatedMovies(db))
 	app.Post("/movies", handlers.CreateMovie(db))
 	app.Put("/movies/:id", handlers.UpdateMovie(db))

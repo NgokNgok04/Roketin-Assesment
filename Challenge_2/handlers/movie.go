@@ -24,6 +24,17 @@ func GetAllMovies(db *gorm.DB) fiber.Handler {
 	}
 }
 
+// GetPaginatedMovies godoc
+// @Summary Get paginated list of movies
+// @Description Returns a paginated list of movies including associated artists and genres. Defaults: page = 1, limit = 10.
+// @Tags Movies
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number (default is 1)"
+// @Param limit query int false "Items per page (default is 10)"
+// @Success 200 {object} models.PaginatedMoviesResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /movies [get]
 func GetPaginatedMovies(db *gorm.DB) fiber.Handler {
 	return func(c * fiber.Ctx) error {
 		pageStr := c.Query("page","1")
@@ -33,7 +44,7 @@ func GetPaginatedMovies(db *gorm.DB) fiber.Handler {
 		limit, _ := strconv.Atoi(limitStr)
 		
 		if page < 1 {page = 1}
-		if limit < 1 {limit = 5}
+		if limit < 1 {limit = 10}
 		offset := (page - 1) * limit
 
 		var movies []models.Movie
@@ -55,6 +66,20 @@ func GetPaginatedMovies(db *gorm.DB) fiber.Handler {
 	}
 }
 
+// @Summary Create a new movie
+// @Description Creates and uploads a new movie. Artists and genres that do not exist in the database will be created automatically before the movie is saved. The uploaded file must be in video format (.mp4, .mkv, .webm) and must not exceed 10MB in size. File will be uploaded in Challenge_2/store
+// @Tags Movies
+// @Accept multipart/form-data
+// @Produce json
+// @Param title formData string true "Movie title"
+// @Param description formData string true "Movie description"
+// @Param duration formData int true "Movie duration"
+// @Param artists formData string true "Comma-separated artist names"
+// @Param genres formData string true "Comma-separated genre names"
+// @Param video formData file true "Video file"
+// @Success 201 {object} models.Movie
+// @Failure 400 {object} models.ErrorResponse
+// @Router /movies [post]
 func CreateMovie(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		title := c.FormValue("title")
@@ -115,6 +140,23 @@ func CreateMovie(db *gorm.DB) fiber.Handler {
 	}
 }
 
+// UpdateMovie godoc
+// @Summary Update an existing movie
+// @Description Updates an existing movie's details and optionally replaces the video file. Artists and genres that do not exist in the database will be created automatically before updating the movie. The uploaded file must be in video format (.mp4, .mkv, .webm) and must not exceed 10MB in size. File will be uploaded in Challenge_2/store
+// @Tags Movies
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path int true "Movie ID"
+// @Param title formData string false "Updated movie title"
+// @Param description formData string false "Updated movie description"
+// @Param duration formData int false "Updated movie duration in minutes"
+// @Param artists formData string false "Comma-separated updated artist names"
+// @Param genres formData string false "Comma-separated updated genre names"
+// @Param video formData file false "New video file (optional)"
+// @Success 200 {object} models.Movie
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /movies/{id} [put]
 func UpdateMovie(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
@@ -186,6 +228,17 @@ func UpdateMovie(db *gorm.DB) fiber.Handler {
 	}
 }
 
+// SearchMovies godoc
+// @Summary Search movies by title, description, artist, or genre
+// @Description Searches for movies where the title, description, artist name, or genre name matches the given query string.
+// @Tags Movies
+// @Accept json
+// @Produce json
+// @Param q query string true "Search keyword (case-insensitive)"
+// @Success 200 {array} models.Movie
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /movies/search [get]
 func SearchMovies(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		q := strings.ToLower(c.Query("q"))

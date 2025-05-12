@@ -6,6 +6,6 @@ type Movie struct {
 	Description string   `json:"description"`
 	Duration    uint32   `json:"duration"`
 	VideoURL    string   `json:"video_url"`
-	Artists     []Artist `json:"artists" gorm:"many2many:movie_artists;"`
-	Genres      []Genre  `json:"genres" gorm:"many2many:movie_genres;"`
+	Artists     []Artist `json:"artists" gorm:"many2many:movie_artists;" swaggertype:"array,string"`
+	Genres      []Genre  `json:"genres" gorm:"many2many:movie_genres;" swaggertype:"array,string"`
 }
