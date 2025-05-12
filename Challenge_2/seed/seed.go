@@ -82,6 +82,7 @@ func main() {
 			Title: movie.Title,
 			Description: movie.Description,
 			Duration: movie.Duration,
+			VideoURL: "Challenge_2/store/dummy.mp4",
 			Artists: artists,
 			Genres: genres,
 		}

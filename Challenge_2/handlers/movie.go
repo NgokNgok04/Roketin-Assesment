@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/NgokNgok04/Roketin-Assesment/Challenge_2/models"
-	"github.com/NgokNgok04/Roketin-Assesment/Challenge_2/types"
 	"github.com/NgokNgok04/Roketin-Assesment/Challenge_2/utils"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -55,46 +57,52 @@ func GetPaginatedMovies(db *gorm.DB) fiber.Handler {
 
 func CreateMovie(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var input types.CreateMovieType
-		if err := c.BodyParser(&input); err != nil {
-			return utils.HandleError(c, "Failed to create movie")
-		}
+		title := c.FormValue("title")
+		description := c.FormValue("description")
+		durationStr := c.FormValue("duration")
+		artistsNames := c.FormValue("artists")
+		genreNames := c.FormValue("genres")
+		if title == "" {return utils.HandleClientError(c, "title cant be empty")}
+		if description == "" {return utils.HandleClientError(c, "description cant be empty")}
+		if durationStr == "" {return utils.HandleClientError(c, "duration cant be empty")}
+		
+		duration, err := strconv.Atoi(durationStr)
+		if err != nil || duration < 1 {return utils.HandleClientError(c, "invalid duration value")}
+		
+		file, err := c.FormFile("video")
+		if err != nil {return utils.HandleClientError(c, "video file is required")}
 
-		if input.Title == "" {
-			return utils.HandleClientError(c, "Title cant be empty")
-		}
-		if input.Description == "" {
-			return utils.HandleClientError(c, "Description cant be empty")
-		}
-		if len(input.Artists) == 0 {
-			return utils.HandleClientError(c, "Artists cant be empty")
-		}
-		if len(input.Genres) == 0 {
-			return utils.HandleClientError(c, "Genres cant be empty")
-		}
-		if input.Duration < 1 {
-			return utils.HandleClientError(c, "Duration cant be 0 or negative")
-		}
-		if err := db.Where("title = ?", input.Title).First(&models.Movie{}).Error;  err == nil {
-			return utils.HandleClientError(c, "Movie with that title already exists")
+		if err := utils.ValidateVideo(file); err != nil {return utils.HandleClientError(c, err.Error())}
+
+		if err := db.Where("title = ?", title).First(&models.Movie{}).Error;  err == nil {
+			return utils.HandleClientError(c, "movie with that title already exists")
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return utils.HandleError(c, "Database error")
-		}
+			return utils.HandleError(c, "database error")
+		}		
+
+		artistList := strings.Split(artistsNames,",")
+		genreList := strings.Split(genreNames,",")
 
 		var artists []models.Artist
-		if err := FindOrCreateArtist(db, input.Artists, &artists); err != nil {
+		if err := FindOrCreateArtist(db, artistList, &artists); err != nil {
 			return utils.HandleError(c, err.Error())
 		}
 
 		var genres []models.Genre
-		if err := FindOrCreateGenre(db, input.Genres, &genres); err != nil {
+		if err := FindOrCreateGenre(db, genreList, &genres); err != nil {
 			return utils.HandleError(c, err.Error())
 		}
 
+		os.MkdirAll("Challenge_2/store", os.ModePerm)
+		uniqueName := fmt.Sprintf("%d_%s", time.Now().UnixNano(), file.Filename)
+		savePath := fmt.Sprintf("Challenge_2/store/%s",uniqueName)
+		if err := c.SaveFile(file, savePath); err != nil {return utils.HandleError(c, "Failed to save video file")}
+
 		movie := models.Movie {
-			Title : input.Title,
-			Description: input.Description,
-			Duration: uint32(input.Duration),
+			Title : title,
+			Description: description,
+			Duration: uint32(duration),
+			VideoURL: savePath,
 			Artists: artists,
 			Genres: genres,
 		}
@@ -110,47 +118,67 @@ func CreateMovie(db *gorm.DB) fiber.Handler {
 func UpdateMovie(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
-		if err != nil {
-			return utils.HandleClientError(c, "Invalid movie ID")
+		if err != nil {return utils.HandleClientError(c, "Invalid movie ID")}
+		
+		title := c.FormValue("title")
+		description := c.FormValue("description")
+		durationStr := c.FormValue("duration")
+		artistsNames := c.FormValue("artists")
+		genreNames := c.FormValue("genres")
+
+		var duration *uint32
+		if durationStr != "" {
+			minutes, err := strconv.Atoi(durationStr)
+			if err != nil || minutes < 1 {
+				return utils.HandleClientError(c, "Invalid duration")
+			}
+			tmp := uint32(minutes)
+			duration = &tmp
 		}
-		
-		var input types.UpdateMovieType
-		if err := c.BodyParser(&input); err != nil {
-			return utils.HandleError(c, "Invalid request body")
-		}
-		
-		if input.Description != nil && *input.Description == "" {return utils.HandleClientError(c, "Description cant be empty")}
-		if input.Title != nil && *input.Title == "" {return utils.HandleClientError(c, "Title cant be empty")}
-		if input.Duration != nil && *input.Duration < 1 {return utils.HandleClientError(c, "Duration cant be zero or negative")}
-		if input.Artists != nil && len(input.Artists) == 0 {return utils.HandleClientError(c, "Artists cant be empty")}
-		if input.Genres != nil && len(input.Genres) == 0 {return utils.HandleClientError(c, "Genres cant be empty")}
-		
-		var existingMovie models.Movie
-		if err := db.Where("title = ?", input.Title).First(&existingMovie).Error; err == nil && existingMovie.ID != uint32(id) {
-			return utils.HandleClientError(c, "Movie with that title already exists")
-		}
-		
+
 		var movie models.Movie
 		if err := db.Preload("Artists").Preload("Genres").First(&movie, id).Error; err != nil {
 			return utils.HandleError(c, "Movie not found")
 		}
 
-		if input.Title != nil {movie.Title = *input.Title}
-		if input.Description != nil {movie.Description = *input.Description}
-		if input.Duration != nil {movie.Duration = *input.Duration}
+		if title != "" {
+			var existingMovie models.Movie
+			if err := db.Where("title = ?", title).First(&existingMovie).Error; err == nil && existingMovie.ID != uint32(id) {
+				return utils.HandleClientError(c, "Movie with that title already exists")
+			}
+			movie.Title = title
+		}
+		if description != "" {movie.Description = description}
+		if duration != nil {movie.Duration = *duration}
 
-		var artists []models.Artist
-		if err := FindOrCreateArtist(db, input.Artists, &artists); err != nil {
-			return utils.HandleError(c, err.Error())
+		file, err := c.FormFile("video")
+		if err == nil {
+			if err := utils.ValidateVideo(file); err != nil {return utils.HandleClientError(c, err.Error())}
+			
+			os.MkdirAll("Challenge_2/store", os.ModePerm)
+			uniqueName := fmt.Sprintf("%d_%s", time.Now().UnixNano(), file.Filename)
+			savePath := fmt.Sprintf("Challenge_2/store/%s", uniqueName)
+
+			if err := c.SaveFile(file, savePath); err != nil {return utils.HandleError(c, "Failed to save video file")}
+			movie.VideoURL = savePath
 		}
-		if input.Artists != nil {movie.Artists = artists}
-		
-		var genres []models.Genre
-		if err := FindOrCreateGenre(db, input.Genres, &genres); err != nil {
-			return utils.HandleError(c, err.Error())
+
+		if artistsNames != "" {
+			artistList := strings.Split(artistsNames, ",")
+
+			var artists []models.Artist
+			if err := FindOrCreateArtist(db, artistList, &artists); err != nil {return utils.HandleError(c, err.Error())}
+			movie.Artists = artists
 		}
 		
-		if input.Genres != nil {movie.Genres = genres}
+		if genreNames != "" {
+			genreList := strings.Split(genreNames, ",")
+
+			var genres []models.Genre
+			if err := FindOrCreateGenre(db, genreList, &genres); err != nil {return utils.HandleError(c, err.Error())}
+			movie.Genres = genres
+		}
+		
 		if err := db.Save(&movie).Error; err != nil {
 			return utils.HandleError(c, "Failed to update movie")
 		}
