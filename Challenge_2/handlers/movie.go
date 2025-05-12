@@ -60,6 +60,12 @@ func CreateMovie(db *gorm.DB) fiber.Handler {
 			return utils.HandleError(c, "Failed to create movie")
 		}
 
+		if input.Title == "" {
+			return utils.HandleClientError(c, "Title cant be empty")
+		}
+		if input.Description == "" {
+			return utils.HandleClientError(c, "Description cant be empty")
+		}
 		if len(input.Artists) == 0 {
 			return utils.HandleClientError(c, "Artists cant be empty")
 		}
@@ -107,15 +113,21 @@ func UpdateMovie(db *gorm.DB) fiber.Handler {
 		if err != nil {
 			return utils.HandleClientError(c, "Invalid movie ID")
 		}
-
+		
 		var input types.UpdateMovieType
 		if err := c.BodyParser(&input); err != nil {
 			return utils.HandleError(c, "Invalid request body")
 		}
 		
+		if input.Description != nil && *input.Description == "" {return utils.HandleClientError(c, "Description cant be empty")}
+		if input.Title != nil && *input.Title == "" {return utils.HandleClientError(c, "Title cant be empty")}
+		if input.Duration != nil && *input.Duration < 1 {return utils.HandleClientError(c, "Duration cant be zero or negative")}
+		if input.Artists != nil && len(input.Artists) == 0 {return utils.HandleClientError(c, "Artists cant be empty")}
+		if input.Genres != nil && len(input.Genres) == 0 {return utils.HandleClientError(c, "Genres cant be empty")}
+		
 		var existingMovie models.Movie
 		if err := db.Where("title = ?", input.Title).First(&existingMovie).Error; err == nil && existingMovie.ID != uint32(id) {
-			return utils.HandleClientError(c, "Movie that title already exists")
+			return utils.HandleClientError(c, "Movie with that title already exists")
 		}
 		
 		var movie models.Movie
@@ -131,18 +143,17 @@ func UpdateMovie(db *gorm.DB) fiber.Handler {
 		if err := FindOrCreateArtist(db, input.Artists, &artists); err != nil {
 			return utils.HandleError(c, err.Error())
 		}
-		movie.Artists = artists
-
+		if input.Artists != nil {movie.Artists = artists}
+		
 		var genres []models.Genre
 		if err := FindOrCreateGenre(db, input.Genres, &genres); err != nil {
 			return utils.HandleError(c, err.Error())
 		}
-
-		movie.Genres = genres
+		
+		if input.Genres != nil {movie.Genres = genres}
 		if err := db.Save(&movie).Error; err != nil {
 			return utils.HandleError(c, "Failed to update movie")
 		}
-
 		return c.JSON(movie)
 	}
 }
