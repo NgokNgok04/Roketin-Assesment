@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/NgokNgok04/Roketin-Assesment/Challenge_2/models"
 	"github.com/NgokNgok04/Roketin-Assesment/Challenge_2/types"
@@ -71,7 +72,7 @@ func CreateMovie(db *gorm.DB) fiber.Handler {
 				return utils.HandleError(c, "Failed to find genres")
 			}
 		}
-
+		
 		movie := models.Movie {
 			Title : input.Title,
 			Description: input.Description,
@@ -80,7 +81,7 @@ func CreateMovie(db *gorm.DB) fiber.Handler {
 			Genres: genres,
 		}
 
-		if err := db.Create(&movie).Error; err != nil {
+		if err := db.FirstOrCreate(&movie,models.Movie{}).Error; err != nil {
 			return utils.HandleError(c, "Failed to create movie")
 		}
 
@@ -125,6 +126,37 @@ func UpdateMovie(db *gorm.DB) fiber.Handler {
 		}
 
 		return c.JSON(movie)
+	}
+}
+
+func SearchMovies(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		q := strings.ToLower(c.Query("q"))
+		if q == "" {
+			return utils.HandleClientError(c, "Missing query param 'q'")
+		}
+
+		var movies []models.Movie
+
+		err := db.Preload("Artists").Preload("Genres").
+		Joins("LEFT JOIN movie_artists ON movie_artists.movie_id = movies.id").
+		Joins("LEFT JOIN artists ON artists.id = movie_artists.artist_id").
+		Joins("LEFT JOIN movie_genres ON movie_genres.movie_id = movies.id").
+		Joins("LEFT JOIN genres ON genres.id = movie_genres.genre_id").
+		Where(`LOWER(movies.title) LIKE ? OR 
+		       LOWER(movies.description) LIKE ? OR 
+			   LOWER(artists.name) LIKE ? OR 
+			   LOWER(genres.name) LIKE ?`,
+			   "%"+q+"%", "%"+q+"%", "%"+q+"%", "%"+q+"%").
+		Group("movies.id").
+		Find(&movies).Error
+
+		if err != nil {
+			return utils.HandleError(c, "Failed to search movies")
+		}
+
+		return c.JSON(movies)
+		
 	}
 }
 
