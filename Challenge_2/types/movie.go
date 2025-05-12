@@ -9,9 +9,9 @@ type CreateMovieType struct {
 }
 
 type UpdateMovieType struct {
-	Title       *string `json:"title"`
-	Description *string `json:"description"`
-	Duration    *uint32 `json:"duration"`
-	ArtistIDs   []uint  `json:"artist_ids"`
-	GenreIDs    []uint  `json:"genre_ids"`
+	Title       *string  `json:"title"`
+	Description *string  `json:"description"`
+	Duration    *uint32  `json:"duration"`
+	Artists     []string `json:"artists"`
+	Genres      []string `json:"genres"`
 }

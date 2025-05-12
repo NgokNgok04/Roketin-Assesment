@@ -76,21 +76,13 @@ func CreateMovie(db *gorm.DB) fiber.Handler {
 		}
 
 		var artists []models.Artist
-		for _, name := range input.Artists {
-			var artist models.Artist
-			if err := db.Where("name = ?", name).FirstOrCreate(&artist, models.Artist{Name: name}).Error; err != nil {
-				return utils.HandleError(c, "Failed to create movie")
-			}
-			artists = append(artists, artist)
+		if err := FindOrCreateArtist(db, input.Artists, &artists); err != nil {
+			return utils.HandleError(c, err.Error())
 		}
 
 		var genres []models.Genre
-		for _, name := range input.Genres {
-			var genre models.Genre
-			if err := db.Where("name = ?", name).FirstOrCreate(&genre, models.Genre{Name: name}).Error; err != nil {
-				return utils.HandleError(c, "Failed to create movie")
-			}
-			genres = append(genres, genre)
+		if err := FindOrCreateGenre(db, input.Genres, &genres); err != nil {
+			return utils.HandleError(c, err.Error())
 		}
 
 		movie := models.Movie {
@@ -113,34 +105,40 @@ func UpdateMovie(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
-			return utils.HandleError(c, "Invalid movie ID")
+			return utils.HandleClientError(c, "Invalid movie ID")
 		}
 
-		var req types.UpdateMovieType
-		if err := c.BodyParser(&req); err != nil {
+		var input types.UpdateMovieType
+		if err := c.BodyParser(&input); err != nil {
 			return utils.HandleError(c, "Invalid request body")
 		}
-
+		
+		var existingMovie models.Movie
+		if err := db.Where("title = ?", input.Title).First(&existingMovie).Error; err == nil && existingMovie.ID != uint32(id) {
+			return utils.HandleClientError(c, "Movie that title already exists")
+		}
+		
 		var movie models.Movie
 		if err := db.Preload("Artists").Preload("Genres").First(&movie, id).Error; err != nil {
 			return utils.HandleError(c, "Movie not found")
 		}
 
-		if req.Title != nil {movie.Title = *req.Title}
-		if req.Description != nil {movie.Description = *req.Description}
-		if req.Duration != nil {movie.Duration = *req.Duration}
+		if input.Title != nil {movie.Title = *input.Title}
+		if input.Description != nil {movie.Description = *input.Description}
+		if input.Duration != nil {movie.Duration = *input.Duration}
 
-		if len(req.ArtistIDs) > 0 {
-			var artists []models.Artist
-			db.Find(&artists, req.ArtistIDs)
-			movie.Artists = artists
+		var artists []models.Artist
+		if err := FindOrCreateArtist(db, input.Artists, &artists); err != nil {
+			return utils.HandleError(c, err.Error())
 		}
-		if len(req.GenreIDs) > 0 {
-			var genres []models.Genre
-			db.Find(&genres, req.GenreIDs)
-			movie.Genres = genres
+		movie.Artists = artists
+
+		var genres []models.Genre
+		if err := FindOrCreateGenre(db, input.Genres, &genres); err != nil {
+			return utils.HandleError(c, err.Error())
 		}
 
+		movie.Genres = genres
 		if err := db.Save(&movie).Error; err != nil {
 			return utils.HandleError(c, "Failed to update movie")
 		}
