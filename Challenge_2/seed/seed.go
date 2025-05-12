@@ -49,44 +49,6 @@ func main() {
 	  RESTART IDENTITY CASCADE
 	`)
 
-
-	artistNames := []string{
-		"Robert Downey Jr.", //1
-		"Chris Evans", 
-		"Scarlett Johansson",
-		"Chris Hemsworth", 
-		"Tom Holland", //5
-		"Mark Ruffalo",
-		"Elizabeth Olsen", 
-		"Benedict Cumberbatch", 
-		"Paul Rudd", 
-		"Chris Pratt", //10
-		"Chadwick Boseman",
-	}
-
-	genreNames := []string{
-		"Action", //1
-		"Adventure", 
-		"Drama", 
-		"Comedy", 
-		"Fantasy", //5
-		"Sci-Fi", 
-		"Thriller", 
-		"War", 
-		"Teen", 
-		"Mystery", //10
-	}
-
-	for _, name := range artistNames {
-		db.FirstOrCreate(&models.Artist{}, models.Artist{Name: name})
-	}
-	for _, name := range genreNames {
-		db.FirstOrCreate(&models.Genre{}, models.Genre{Name: name})
-	}
-
-	log.Println("Artists and genres seeded.")
-
-
 	file, err := os.Open("Challenge_2/seed/dummy.json")
 	if err != nil {
 		log.Fatalf("Failed to open JSON file: %v", err)
@@ -97,35 +59,37 @@ func main() {
 	if err := json.NewDecoder(file).Decode(&movies); err != nil {
 		log.Fatal("Failed to decode JSON:", err)
 	}
-
-
-	for _,movie := range movies {
+	for _, movie := range movies {
 		var artists []models.Artist
 		var genres []models.Genre
-
-		if len(movie.ArtistIDs) > 0 {
-			if err := db.Find(&artists, movie.ArtistIDs).Error; err != nil {
-				log.Fatal("Failed to find artists:", err)
+		for _, name := range movie.Artists {
+			var artist models.Artist
+			if err := db.Where("name = ?", name).FirstOrCreate(&artist, models.Artist{Name: name}).Error; err != nil {
+				log.Fatal("Failed to create artist :", name)
 			}
+			artists = append(artists, artist)
+		}
+		
+		for _, name := range movie.Genres {
+			var genre models.Genre
+			if err := db.Where("name = ?", name).FirstOrCreate(&genre, models.Genre{Name: name}).Error; err != nil {
+				log.Fatal("Failed to create genre :", name)
+			}
+			genres = append(genres, genre)
 		}
 
-		if len(movie.GenreIDs) > 0 {
-			if err := db.Find(&genres, movie.GenreIDs).Error; err != nil {
-				log.Fatal("Failed to find genres:", err)
-			}
-		}
-
-		createMovie := models.Movie{
-			Title:       movie.Title,
+		createMovie := models.Movie {
+			Title: movie.Title,
 			Description: movie.Description,
-			Duration:    movie.Duration,
-			Artists:     artists,
-			Genres:      genres,
+			Duration: movie.Duration,
+			Artists: artists,
+			Genres: genres,
 		}
 
 		if err := db.Create(&createMovie).Error; err != nil {
 			log.Fatal("Failed to create movie:", err)
 		}
 	}
+
 	fmt.Println("Movies seeded.")
 }
