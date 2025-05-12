@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -59,20 +60,39 @@ func CreateMovie(db *gorm.DB) fiber.Handler {
 			return utils.HandleError(c, "Failed to create movie")
 		}
 
+		if len(input.Artists) == 0 {
+			return utils.HandleClientError(c, "Artists cant be empty")
+		}
+		if len(input.Genres) == 0 {
+			return utils.HandleClientError(c, "Genres cant be empty")
+		}
+		if input.Duration < 1 {
+			return utils.HandleClientError(c, "Duration cant be 0 or negative")
+		}
+		if err := db.Where("title = ?", input.Title).First(&models.Movie{}).Error;  err == nil {
+			return utils.HandleClientError(c, "Movie with that title already exists")
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return utils.HandleError(c, "Database error")
+		}
+
 		var artists []models.Artist
-		if len(input.ArtistIDs) > 0 {
-			if err := db.Find(&artists, input.ArtistIDs).Error; err != nil {
-				return utils.HandleError(c, "Failed to find artists")
+		for _, name := range input.Artists {
+			var artist models.Artist
+			if err := db.Where("name = ?", name).FirstOrCreate(&artist, models.Artist{Name: name}).Error; err != nil {
+				return utils.HandleError(c, "Failed to create movie")
 			}
+			artists = append(artists, artist)
 		}
 
 		var genres []models.Genre
-		if len(input.GenreIDs) > 0 {
-			if err := db.Find(&genres, input.GenreIDs).Error; err != nil {
-				return utils.HandleError(c, "Failed to find genres")
+		for _, name := range input.Genres {
+			var genre models.Genre
+			if err := db.Where("name = ?", name).FirstOrCreate(&genre, models.Genre{Name: name}).Error; err != nil {
+				return utils.HandleError(c, "Failed to create movie")
 			}
+			genres = append(genres, genre)
 		}
-		
+
 		movie := models.Movie {
 			Title : input.Title,
 			Description: input.Description,
@@ -81,7 +101,7 @@ func CreateMovie(db *gorm.DB) fiber.Handler {
 			Genres: genres,
 		}
 
-		if err := db.FirstOrCreate(&movie,models.Movie{}).Error; err != nil {
+		if err := db.Create(&movie).Error; err != nil {
 			return utils.HandleError(c, "Failed to create movie")
 		}
 
