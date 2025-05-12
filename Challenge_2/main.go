@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/NgokNgok04/Roketin-Assesment/Challenge_2/handlers"
-	"github.com/NgokNgok04/Roketin-Assesment/Challenge_2/seed"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -41,14 +40,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to PostgreSQL: %v", err)
 	}
-	// Seeding data
-	seed.Seed(db)
 
 	app := fiber.New();
 	// Route
 	app.Get("/movies", handlers.GetPaginatedMovies(db))
 	app.Post("/movies", handlers.CreateMovie(db))
 	app.Put("/movies/:id", handlers.UpdateMovie(db))
-
+	app.Get("/movies/search", handlers.SearchMovies(db)) 
 	log.Fatal(app.Listen(":3000"));
 }

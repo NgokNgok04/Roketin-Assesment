@@ -7,3 +7,8 @@ func HandleError(c *fiber.Ctx, message string) error {
 		"error": message,
 	})
 }
+func HandleClientError(c *fiber.Ctx, message string) error {
+	return c.Status(400).JSON(fiber.Map{
+		"error": message,
+	})
+}

@@ -1,0 +1,142 @@
+[
+  {
+    "title": "Iron Man",
+    "description": "After being held captive, billionaire engineer Tony Stark creates a suit of armor to become Iron Man.",
+    "duration": 126,
+    "artists": [1],
+    "genres": [1, 6]
+  },
+  {
+    "title": "The Incredible Hulk",
+    "description": "Bruce Banner becomes the Hulk after a failed experiment and is hunted by the military.",
+    "duration": 112,
+    "artists": [6],
+    "genres": [1, 2]
+  },
+  {
+    "title": "Iron Man 2",
+    "description": "Tony Stark faces pressure to share his technology while battling a new enemy.",
+    "duration": 124,
+    "artists": [1, 3],
+    "genres": [1, 6]
+  },
+  {
+    "title": "Thor",
+    "description": "Thor, the god of thunder, is banished to Earth and learns humility.",
+    "duration": 115,
+    "artists": [4],
+    "genres": [2, 5]
+  },
+  {
+    "title": "Captain America: The First Avenger",
+    "description": "Steve Rogers becomes Captain America during World War II.",
+    "duration": 124,
+    "artists": [2],
+    "genres": [1, 8]
+  },
+  {
+    "title": "The Avengers",
+    "description": "Earth's mightiest heroes assemble to stop Loki and the Chitauri invasion.",
+    "duration": 143,
+    "artists": [1, 2, 3, 4, 6],
+    "genres": [1, 2]
+  },
+  {
+    "title": "Iron Man 3",
+    "description": "Tony Stark struggles with PTSD while facing a powerful terrorist known as the Mandarin.",
+    "duration": 130,
+    "artists": [1],
+    "genres": [1, 7]
+  },
+  {
+    "title": "Thor: The Dark World",
+    "description": "Thor must save the Nine Realms from a dark force older than the universe.",
+    "duration": 112,
+    "artists": [4],
+    "genres": [1, 5]
+  },
+  {
+    "title": "Captain America: The Winter Soldier",
+    "description": "Captain America uncovers a conspiracy inside S.H.I.E.L.D. while facing a deadly assassin.",
+    "duration": 136,
+    "artists": [1, 2, 3],
+    "genres": [1]
+  },
+  {
+    "title": "Guardians of the Galaxy",
+    "description": "A group of intergalactic criminals must band together to stop a fanatical warrior.",
+    "duration": 121,
+    "artists": [10],
+    "genres": [3, 6]
+  },
+  {
+    "title": "Avengers: Age of Ultron",
+    "description": "The Avengers must stop a rogue AI bent on global destruction.",
+    "duration": 141,
+    "artists": [1, 2, 3, 4, 6, 7],
+    "genres": [1, 6]
+  },
+  {
+    "title": "Ant-Man",
+    "description": "A thief gains the power to shrink and must help his mentor pull off a heist.",
+    "duration": 117,
+    "artists": [9],
+    "genres": [1, 4]
+  },
+  {
+    "title": "Captain America: Civil War",
+    "description": "Political pressure splits the Avengers into opposing factions.",
+    "duration": 147,
+    "artists": [1, 2, 3, 5, 6, 7, 9],
+    "genres": [1, 3]
+  },
+  {
+    "title": "Doctor Strange",
+    "description": "A neurosurgeon discovers the mystic arts after a career-ending accident.",
+    "duration": 115,
+    "artists": [8],
+    "genres": [2, 5]
+  },
+  {
+    "title": "Black Panther",
+    "description": "T'Challa returns to Wakanda to become king and faces a new challenger.",
+    "duration": 134,
+    "artists": [11],
+    "genres": [1, 6]
+  },
+  {
+    "title": "Spider-Man: Homecoming",
+    "description": "Peter Parker tries to balance life as a high school student and superhero.",
+    "duration": 133,
+    "artists": [5],
+    "genres": [1, 9]
+  },
+  {
+    "title": "Thor: Ragnarok",
+    "description": "Thor must escape a gladiator planet to save Asgard from destruction.",
+    "duration": 130,
+    "artists": [4, 6],
+    "genres": [4, 5]
+  },
+  {
+    "title": "Avengers: Infinity War",
+    "description": "The Avengers face their most powerful enemy yet: Thanos.",
+    "duration": 149,
+    "artists": [1, 2, 3, 4, 5, 6, 7, 8, 10, 11],
+    "genres": [1, 3]
+  },
+  {
+    "title": "Avengers: Endgame",
+    "description": "After the devastating events of Infinity War, the Avengers attempt to undo the damage.",
+    "duration": 181,
+    "artists": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "genres": [1, 2]
+  },
+  {
+    "title": "Spider-Man: Far From Home",
+    "description": "Peter Parker goes on a school trip and faces new threats.",
+    "duration": 129,
+    "artists": [5],
+    "genres": [1, 9]
+  }
+]

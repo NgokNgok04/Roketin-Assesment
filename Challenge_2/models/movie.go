@@ -5,6 +5,6 @@ type Movie struct {
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	Duration    uint32   `json:"duration"`
-	Artists     []Artist `json:"artists" gorm:"many2many:move_movie_artists;"`
-	Genres      []Genre  `json:"genres" gorm:"many2many:move_movie_genres;"`
+	Artists     []Artist `json:"artists" gorm:"many2many:movie_artists;"`
+	Genres      []Genre  `json:"genres" gorm:"many2many:movie_genres;"`
 }
